@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+nul
+
+# Logs
+*.log
+pino-pretty.log
+
+# Prisma
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# MinIO/Docker volumes
+postgres_data/
+redis_data/
+minio_data/
+.claude/

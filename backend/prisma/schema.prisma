@@ -1,0 +1,274 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ORGANIZATION & USERS
+// ============================================
+
+model Organization {
+  id        String    @id @default(uuid())
+  name      String    @db.VarChar(100)
+  slug      String    @unique @db.VarChar(100)
+  email     String    @db.VarChar(255)
+  settings  Json      @default("{}")
+  metadata  Json      @default("{}")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  users        User[]
+  apiKeys      ApiKey[]
+  mediaFiles   MediaFile[]
+  jobs         ProcessingJob[]
+  usageRecords UsageRecord[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String     @id @default(uuid())
+  organizationId String?    @map("organization_id")
+  email          String     @db.VarChar(255)
+  passwordHash   String     @map("password_hash")
+  name           String     @db.VarChar(100)
+  role           UserRole   @default(MEMBER)
+  status         UserStatus @default(ACTIVE)
+  isSuperAdmin   Boolean    @default(false) @map("is_super_admin")
+  permissions    Json       @default("{}")
+  settings       Json       @default("{}")
+  lastLoginAt    DateTime?  @map("last_login_at")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  organization  Organization?  @relation(fields: [organizationId], references: [id])
+  apiKeys       ApiKey[]
+  mediaFiles    MediaFile[]
+  jobs          ProcessingJob[]
+  refreshTokens RefreshToken[]
+  usageRecords  UsageRecord[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@map("users")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ============================================
+// API KEYS
+// ============================================
+
+model ApiKey {
+  id              String       @id @default(uuid())
+  organizationId  String       @map("organization_id")
+  createdByUserId String       @map("created_by_user_id")
+  name            String       @db.VarChar(100)
+  keyPrefix       String       @map("key_prefix") @db.VarChar(12)
+  keyHash         String       @unique @map("key_hash")
+  permissions     Json         @default("{}")
+  rateLimits      Json         @default("{}") @map("rate_limits")
+  status          ApiKeyStatus @default(ACTIVE)
+  expiresAt       DateTime?    @map("expires_at")
+  lastUsedAt      DateTime?    @map("last_used_at")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  organization  Organization    @relation(fields: [organizationId], references: [id])
+  createdByUser User            @relation(fields: [createdByUserId], references: [id])
+  mediaFiles    MediaFile[]
+  jobs          ProcessingJob[]
+  usageRecords  UsageRecord[]
+
+  @@index([organizationId])
+  @@map("api_keys")
+}
+
+enum ApiKeyStatus {
+  ACTIVE
+  SUSPENDED
+  REVOKED
+}
+
+// ============================================
+// MEDIA FILES
+// ============================================
+
+model MediaFile {
+  id                 String          @id @default(uuid())
+  organizationId     String          @map("organization_id")
+  uploadedByUserId   String?         @map("uploaded_by_user_id")
+  uploadedByApiKeyId String?         @map("uploaded_by_api_key_id")
+  originalFilename   String          @map("original_filename") @db.VarChar(255)
+  storedFilename     String          @map("stored_filename") @db.VarChar(255)
+  mimeType           String          @map("mime_type") @db.VarChar(100)
+  mediaType          MediaType       @map("media_type")
+  fileSizeBytes      BigInt          @map("file_size_bytes")
+  storagePath        String          @map("storage_path") @db.VarChar(500)
+  thumbnailPath      String?         @map("thumbnail_path") @db.VarChar(500)
+  metadata           Json            @default("{}")
+  checksumMd5        String          @map("checksum_md5") @db.VarChar(32)
+  checksumSha256     String          @map("checksum_sha256") @db.VarChar(64)
+  status             MediaFileStatus @default(PROCESSING)
+  expiresAt          DateTime        @map("expires_at")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  organization     Organization    @relation(fields: [organizationId], references: [id])
+  uploadedByUser   User?           @relation(fields: [uploadedByUserId], references: [id])
+  uploadedByApiKey ApiKey?         @relation(fields: [uploadedByApiKeyId], references: [id])
+  jobsAsInput      ProcessingJob[] @relation("InputMedia")
+  jobsAsResult     ProcessingJob[] @relation("ResultMedia")
+
+  @@index([organizationId])
+  @@index([organizationId, mediaType])
+  @@index([expiresAt])
+  @@map("media_files")
+}
+
+enum MediaType {
+  IMAGE
+  AUDIO
+}
+
+enum MediaFileStatus {
+  PROCESSING
+  READY
+  FAILED
+  DELETED
+}
+
+// ============================================
+// PROCESSING JOBS
+// ============================================
+
+model ProcessingJob {
+  id               String         @id @default(uuid())
+  organizationId   String         @map("organization_id")
+  userId           String?        @map("user_id")
+  apiKeyId         String?        @map("api_key_id")
+  inputMediaId     String         @map("input_media_id")
+  actionId         String         @map("action_id") @db.VarChar(50)
+  actionCategory   ActionCategory @map("action_category")
+  parameters       Json           @default("{}")
+  status           JobStatus      @default(PENDING)
+  priority         Int            @default(50)
+  workerId         String?        @map("worker_id")
+  queuedAt         DateTime?      @map("queued_at")
+  startedAt        DateTime?      @map("started_at")
+  completedAt      DateTime?      @map("completed_at")
+  resultType       ResultType?    @map("result_type")
+  resultMediaId    String?        @map("result_media_id")
+  resultData       Json?          @map("result_data")
+  errorCode        String?        @map("error_code") @db.VarChar(50)
+  errorMessage     String?        @map("error_message")
+  retryCount       Int            @default(0) @map("retry_count")
+  maxRetries       Int            @default(3) @map("max_retries")
+  processingTimeMs Int?           @map("processing_time_ms")
+  aiProvider       String?        @map("ai_provider") @db.VarChar(50)
+  aiTokensUsed     Int?           @map("ai_tokens_used")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  organization Organization   @relation(fields: [organizationId], references: [id])
+  user         User?          @relation(fields: [userId], references: [id])
+  apiKey       ApiKey?        @relation(fields: [apiKeyId], references: [id])
+  inputMedia   MediaFile      @relation("InputMedia", fields: [inputMediaId], references: [id])
+  resultMedia  MediaFile?     @relation("ResultMedia", fields: [resultMediaId], references: [id])
+  usageRecords UsageRecord[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([status, priority])
+  @@map("processing_jobs")
+}
+
+enum ActionCategory {
+  TRANSCRIBE
+  MODIFY
+  PROCESS
+}
+
+enum JobStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ResultType {
+  FILE
+  JSON
+  FILES
+}
+
+// ============================================
+// USAGE TRACKING
+// ============================================
+
+model UsageRecord {
+  id               String          @id @default(uuid())
+  organizationId   String          @map("organization_id")
+  userId           String?         @map("user_id")
+  apiKeyId         String?         @map("api_key_id")
+  jobId            String?         @map("job_id")
+  actionType       UsageActionType @map("action_type")
+  actionId         String?         @map("action_id") @db.VarChar(50)
+  mediaType        String?         @map("media_type") @db.VarChar(20)
+  fileSizeBytes    BigInt?         @map("file_size_bytes")
+  processingTimeMs Int?            @map("processing_time_ms")
+  aiTokensUsed     Int?            @map("ai_tokens_used")
+  requestIp        String          @map("request_ip") @db.VarChar(45)
+  userAgent        String?         @map("user_agent") @db.VarChar(500)
+  endpoint         String          @db.VarChar(200)
+  httpMethod       String          @map("http_method") @db.VarChar(10)
+  responseStatus   Int             @map("response_status")
+  creditsUsed      Decimal         @default(0) @map("credits_used") @db.Decimal(10, 4)
+  timestamp        DateTime        @default(now())
+
+  organization Organization   @relation(fields: [organizationId], references: [id])
+  user         User?          @relation(fields: [userId], references: [id])
+  apiKey       ApiKey?        @relation(fields: [apiKeyId], references: [id])
+  job          ProcessingJob? @relation(fields: [jobId], references: [id])
+
+  @@index([organizationId, timestamp])
+  @@index([apiKeyId, timestamp])
+  @@map("usage_records")
+}
+
+enum UsageActionType {
+  UPLOAD
+  PROCESS
+  DOWNLOAD
+  API_CALL
+}
