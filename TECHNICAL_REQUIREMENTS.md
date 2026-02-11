@@ -759,9 +759,179 @@ volumes:
 
 ---
 
-## 8. Non-Functional Requirements
+## 8. API Endpoints
 
-### 8.1 Performance Targets
+### 8.1 Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/auth/register` | Register new organization and owner account |
+| POST | `/api/v1/auth/login` | User login, returns JWT tokens |
+| POST | `/api/v1/auth/refresh` | Refresh access token |
+| POST | `/api/v1/auth/logout` | Invalidate refresh token |
+
+### 8.2 Organization Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/organizations/:id` | Get organization details |
+| PUT | `/api/v1/organizations/:id` | Update organization settings |
+| DELETE | `/api/v1/organizations/:id` | Delete organization (owner only) |
+| GET | `/api/v1/organizations/:id/users` | List organization users |
+| POST | `/api/v1/organizations/:id/users` | Invite user to organization |
+| DELETE | `/api/v1/organizations/:id/users/:userId` | Remove user |
+| PUT | `/api/v1/organizations/:id/users/:userId/role` | Update user role |
+
+### 8.3 API Key Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/api-keys` | List all API keys (masked) |
+| POST | `/api/v1/api-keys` | Create new API key |
+| GET | `/api/v1/api-keys/:id` | Get API key details |
+| PUT | `/api/v1/api-keys/:id` | Update API key settings |
+| DELETE | `/api/v1/api-keys/:id` | Revoke API key |
+| POST | `/api/v1/api-keys/:id/rotate` | Rotate API key secret |
+
+### 8.4 Media Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/media/upload` | Upload media file (multipart/form-data) |
+| GET | `/api/v1/media` | List uploaded media (paginated) |
+| GET | `/api/v1/media/:id` | Get media metadata |
+| GET | `/api/v1/media/:id/download` | Download original file |
+| GET | `/api/v1/media/:id/thumbnail` | Get auto-generated thumbnail (images only) |
+| DELETE | `/api/v1/media/:id` | Delete media file |
+
+### 8.5 Actions & Processing
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/actions` | List all available actions |
+| GET | `/api/v1/actions/:mediaType` | List actions for media type |
+| GET | `/api/v1/actions/:mediaType/:actionId` | Get action details & input schema |
+| POST | `/api/v1/process` | Submit processing job |
+| GET | `/api/v1/jobs` | List jobs (paginated, filterable) |
+| GET | `/api/v1/jobs/:id` | Get job status |
+| GET | `/api/v1/jobs/:id/result` | Get/download job result |
+| DELETE | `/api/v1/jobs/:id` | Cancel pending job |
+
+### 8.6 Usage & Analytics
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/usage` | Get usage summary |
+| GET | `/api/v1/usage/detailed` | Detailed usage breakdown |
+
+### 8.7 System
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/health` | Health check |
+| GET | `/api/v1/supported-formats` | List supported media formats |
+| GET | `/api/v1/rate-limits` | Get current rate limit status |
+
+---
+
+## 9. Rate Limit Response Headers
+
+```
+X-RateLimit-Limit: 300
+X-RateLimit-Remaining: 299
+X-RateLimit-Reset: 1640995200
+Retry-After: 30 (only on 429)
+```
+
+---
+
+## 10. Webhook Technical Details
+
+### 10.1 Webhook Payload Example
+```json
+{
+  "event": "job.completed",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "organization_id": "org_abc123",
+  "data": {
+    "job_id": "job_xyz789",
+    "action_id": "img_ocr",
+    "status": "completed",
+    "result_url": "https://api.example.com/v1/jobs/job_xyz789/result"
+  }
+}
+```
+
+### 10.2 Webhook Configuration
+- HMAC-SHA256 signature for verification
+- Automatic retry (3 attempts with exponential backoff)
+- 30-second timeout per attempt
+
+---
+
+## 11. Error Handling
+
+### 11.1 Error Response Format
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "File size exceeds maximum allowed (50MB)",
+    "details": {
+      "field": "file",
+      "max_size_mb": 50,
+      "actual_size_mb": 75
+    },
+    "request_id": "req_a1b2c3d4"
+  }
+}
+```
+
+### 11.2 Error Codes
+
+| HTTP | Code | Description |
+|------|------|-------------|
+| 400 | `VALIDATION_ERROR` | Invalid request parameters |
+| 400 | `INVALID_FILE_TYPE` | Unsupported media format |
+| 400 | `FILE_TOO_LARGE` | File exceeds size limit |
+| 400 | `INVALID_ACTION` | Action not found or not applicable |
+| 401 | `UNAUTHORIZED` | Missing or invalid credentials |
+| 401 | `TOKEN_EXPIRED` | JWT token has expired |
+| 401 | `INVALID_API_KEY` | API key not found or revoked |
+| 403 | `FORBIDDEN` | Insufficient permissions |
+| 403 | `LIMIT_EXCEEDED` | Organization limit reached |
+| 404 | `NOT_FOUND` | Resource not found |
+| 409 | `CONFLICT` | Resource already exists |
+| 429 | `RATE_LIMITED` | Too many requests |
+| 429 | `QUOTA_EXCEEDED` | Usage quota exceeded |
+| 500 | `INTERNAL_ERROR` | Server error |
+| 502 | `AI_PROVIDER_ERROR` | External AI service error |
+| 503 | `SERVICE_UNAVAILABLE` | Service temporarily unavailable |
+
+---
+
+## 12. Usage Tracking Details
+
+### 12.1 Per Request Metrics
+- Timestamp
+- Endpoint and HTTP method
+- Response status and time
+- Request/response size
+- API key or user ID
+- IP address
+
+### 12.2 Per Processing Job Metrics
+- Action type and parameters
+- Input/output file sizes
+- Processing duration
+- AI provider used
+- Queue wait time
+
+### 12.3 Aggregated Reports
+- Total requests by endpoint
+- Processing jobs by action type
+- Storage utilization
+- Bandwidth consumption
+- Error rates
+
+---
+
+## 13. Non-Functional Requirements
+
+### 13.1 Performance Targets
 
 | Metric | Target |
 |--------|--------|
@@ -770,7 +940,7 @@ volumes:
 | Job queue latency | < 5 seconds |
 | Database query time (p95) | < 50ms |
 
-### 8.2 Security Requirements
+### 13.2 Security Requirements
 
 | Requirement | Implementation |
 |-------------|----------------|
@@ -780,7 +950,7 @@ volumes:
 | API keys | SHA-256 hash |
 | SQL injection | Prisma parameterized queries |
 
-### 8.3 Testing Requirements
+### 13.3 Testing Requirements
 
 | Type | Coverage |
 |------|----------|
@@ -790,9 +960,9 @@ volumes:
 
 ---
 
-## 9. Deliverables Checklist
+## 14. Deliverables Checklist
 
-### 9.1 Required
+### 14.1 Required
 - [x] Working API
 - [x] OpenAPI specification
 - [x] Setup instructions (see SETUP_PROGRESS.md)
@@ -800,14 +970,14 @@ volumes:
 - [x] Docker Compose setup
 - [x] Architecture decision document
 
-### 9.2 Code Quality
+### 14.2 Code Quality
 - [x] TypeScript strict mode
 - [x] ESLint + Prettier
 - [x] Error handling
 - [x] Input validation (Zod schemas)
 - [x] Structured logging (Pino)
 
-### 9.3 Frontend
+### 14.3 Frontend
 - [x] React 18 + TypeScript + Vite
 - [x] TailwindCSS styling
 - [x] React Router for navigation
@@ -819,5 +989,5 @@ volumes:
 
 ---
 
-*Document Version: 2.1*
+*Document Version: 3.0*
 *Last Updated: 2026-02-11*
