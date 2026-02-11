@@ -42,7 +42,7 @@ export class ImgOcrHandler extends BaseActionHandler {
     },
   };
 
-  validate(params: Record<string, unknown>): ValidationResult {
+  override validate(params: Record<string, unknown>): ValidationResult {
     // No required params
     return { valid: true };
   }

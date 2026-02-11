@@ -9,12 +9,13 @@ import {
   deleteUser,
 } from '../../services/admin.service.js';
 import { ValidationError, DuplicateError } from '../../utils/errors.js';
+import { validatePasswordStrength } from '../../core/auth/password.js';
 import { prisma } from '../../core/database/prisma.js';
 
 const createOrgSchema = z.object({
   name: z.string().min(2).max(100),
   adminEmail: z.string().email(),
-  adminPassword: z.string().min(6),
+  adminPassword: z.string().min(8),
   adminName: z.string().min(2).max(100),
 });
 
@@ -76,7 +77,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const page = parseInt(request.query.page || '1', 10);
-      const limit = parseInt(request.query.limit || '20', 10);
+      const limit = Math.min(parseInt(request.query.limit || '20', 10), 100);
       const result = await listOrganizations(page, limit);
 
       return reply.send({
@@ -106,7 +107,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
           properties: {
             name: { type: 'string', minLength: 2, maxLength: 100 },
             adminEmail: { type: 'string', format: 'email' },
-            adminPassword: { type: 'string', minLength: 6 },
+            adminPassword: { type: 'string', minLength: 8 },
             adminName: { type: 'string', minLength: 2, maxLength: 100 },
           },
         },
@@ -152,6 +153,13 @@ export async function adminRoutes(fastify: FastifyInstance) {
       }
 
       const { name, adminEmail, adminPassword, adminName } = parsed.data;
+
+      const passwordCheck = validatePasswordStrength(adminPassword);
+      if (!passwordCheck.valid) {
+        throw new ValidationError('Password does not meet requirements', {
+          errors: passwordCheck.errors,
+        });
+      }
 
       const slug = name
         .toLowerCase()
@@ -309,7 +317,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const page = parseInt(request.query.page || '1', 10);
-      const limit = parseInt(request.query.limit || '20', 10);
+      const limit = Math.min(parseInt(request.query.limit || '20', 10), 100);
       const result = await listUsersInOrganization(request.params.orgId, page, limit);
 
       return reply.send({

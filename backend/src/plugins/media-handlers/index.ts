@@ -23,11 +23,11 @@ const handlers: Map<MediaType, MediaHandler> = new Map([
 export function getMediaTypeFromMimeType(mimeType: string): MediaType | null {
   const normalizedMime = mimeType.toLowerCase();
 
-  if (config.media.image.supportedMimeTypes.includes(normalizedMime)) {
+  if ((config.media.image.supportedMimeTypes as readonly string[]).includes(normalizedMime)) {
     return 'image';
   }
 
-  if (config.media.audio.supportedMimeTypes.includes(normalizedMime)) {
+  if ((config.media.audio.supportedMimeTypes as readonly string[]).includes(normalizedMime)) {
     return 'audio';
   }
 
@@ -80,7 +80,7 @@ export async function processMedia(
     mediaType,
     metadata,
     thumbnail,
-  };
+  } as MediaProcessingResult;
 }
 
 export { imageHandler, audioHandler };

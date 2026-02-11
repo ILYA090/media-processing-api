@@ -99,11 +99,11 @@ export interface MediaFile {
   id: string;
   originalFilename: string;
   mimeType: string;
-  mediaType: 'IMAGE' | 'AUDIO';
-  fileSizeBytes: number;
+  mediaType: 'image' | 'audio';
+  fileSizeBytes: number | string;
   metadata: ImageMetadata | AudioMetadata;
-  status: 'PROCESSING' | 'READY' | 'FAILED' | 'DELETED';
-  expiresAt: string;
+  status: 'processing' | 'ready' | 'failed' | 'deleted';
+  expiresAt?: string;
   createdAt: string;
   thumbnailUrl?: string;
 }
@@ -160,7 +160,7 @@ export interface JsonSchemaProperty {
 // JOB TYPES
 // ============================================
 
-export type JobStatus = 'PENDING' | 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+export type JobStatus = 'pending' | 'queued' | 'processing' | 'completed' | 'failed' | 'cancelled';
 
 export interface ProcessingJob {
   id: string;

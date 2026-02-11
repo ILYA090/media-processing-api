@@ -131,6 +131,7 @@ export async function transcribeAudio(
     language?: string;
     prompt?: string;
     userId?: string;
+    mimeType?: string;
   }
 ): Promise<TranscriptionResult> {
   const clients = await getAiClients(options?.userId);
@@ -140,7 +141,11 @@ export async function transcribeAudio(
   }
 
   try {
-    const file = new File([audioBuffer], 'audio.mp3', { type: 'audio/mpeg' });
+    const mimeType = options?.mimeType || 'audio/mpeg';
+    const ext = mimeType.split('/')[1] || 'mp3';
+    const arrayBuf = audioBuffer.buffer.slice(audioBuffer.byteOffset, audioBuffer.byteOffset + audioBuffer.byteLength) as ArrayBuffer;
+    const blob = new Blob([arrayBuf], { type: mimeType });
+    const file = new File([blob], `audio.${ext}`, { type: mimeType });
 
     const response = await clients.openai.audio.transcriptions.create({
       file,
@@ -150,11 +155,13 @@ export async function transcribeAudio(
       response_format: 'verbose_json',
     });
 
+    const verboseResponse = response as unknown as Record<string, unknown>;
+
     return {
       text: response.text,
       language: response.language,
-      duration: response.duration,
-      segments: response.segments?.map((s) => ({
+      duration: verboseResponse.duration as number | undefined,
+      segments: (verboseResponse.segments as Array<{ start: number; end: number; text: string }> | undefined)?.map((s) => ({
         start: s.start,
         end: s.end,
         text: s.text,
@@ -171,6 +178,7 @@ export async function translateAudio(
   options?: {
     prompt?: string;
     userId?: string;
+    mimeType?: string;
   }
 ): Promise<TranscriptionResult> {
   const clients = await getAiClients(options?.userId);
@@ -180,7 +188,11 @@ export async function translateAudio(
   }
 
   try {
-    const file = new File([audioBuffer], 'audio.mp3', { type: 'audio/mpeg' });
+    const mimeType = options?.mimeType || 'audio/mpeg';
+    const ext = mimeType.split('/')[1] || 'mp3';
+    const arrayBuf = audioBuffer.buffer.slice(audioBuffer.byteOffset, audioBuffer.byteOffset + audioBuffer.byteLength) as ArrayBuffer;
+    const blob = new Blob([arrayBuf], { type: mimeType });
+    const file = new File([blob], `audio.${ext}`, { type: mimeType });
 
     const response = await clients.openai.audio.translations.create({
       file,
@@ -189,11 +201,13 @@ export async function translateAudio(
       response_format: 'verbose_json',
     });
 
+    const verboseResponse = response as unknown as Record<string, unknown>;
+
     return {
       text: response.text,
       language: 'en',
-      duration: response.duration,
-      segments: response.segments?.map((s) => ({
+      duration: verboseResponse.duration as number | undefined,
+      segments: (verboseResponse.segments as Array<{ start: number; end: number; text: string }> | undefined)?.map((s) => ({
         start: s.start,
         end: s.end,
         text: s.text,

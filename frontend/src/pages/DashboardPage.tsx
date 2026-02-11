@@ -22,23 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { AuthImage } from '@/components/ui/AuthImage';
 import { api } from '@/services/api';
 import { formatBytes, formatDateTime } from '@/utils/helpers';
-
-const ACTION_LABELS: Record<string, string> = {
-  img_ocr: 'Extract Text (OCR)',
-  img_describe: 'Describe Image',
-  img_analyze: 'Analyze Image',
-  img_resize: 'Resize Image',
-  img_crop: 'Crop Image',
-  img_format_convert: 'Convert Format',
-  img_metadata: 'Extract Metadata',
-  aud_transcribe: 'Transcribe Audio',
-  aud_translate: 'Translate Audio',
-  aud_analyze: 'Analyze Audio',
-  aud_trim: 'Trim Audio',
-  aud_volume: 'Adjust Volume',
-  aud_format_convert: 'Convert Audio Format',
-  aud_generate_waveform: 'Generate Waveform',
-};
+import { ACTION_LABELS } from '@/utils/constants';
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -50,12 +34,12 @@ export function DashboardPage() {
 
   const { data: recentJobs } = useQuery({
     queryKey: ['recent-jobs'],
-    queryFn: () => api.getJobs({ limit: 5 } as any),
+    queryFn: () => api.getJobs({ limit: 5 }),
   });
 
   const { data: recentMedia } = useQuery({
     queryKey: ['recent-media'],
-    queryFn: () => api.getMediaList({ limit: 4 } as any),
+    queryFn: () => api.getMediaList({ limit: 4 }),
   });
 
   const allJobs = recentJobs?.data || [];

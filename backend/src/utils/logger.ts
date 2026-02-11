@@ -13,6 +13,7 @@ const transport =
       }
     : undefined;
 
+// @ts-expect-error — pino CJS/ESM interop
 export const logger = pino({
   level: config.logging.level,
   transport,
@@ -20,7 +21,7 @@ export const logger = pino({
     env: config.env,
   },
   formatters: {
-    level: (label) => ({ level: label }),
+    level: (label: string) => ({ level: label }),
   },
   timestamp: pino.stdTimeFunctions.isoTime,
   redact: {

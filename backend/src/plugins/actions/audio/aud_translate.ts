@@ -47,14 +47,14 @@ export class AudTranslateHandler extends BaseActionHandler {
     },
   };
 
-  validate(params: Record<string, unknown>): ValidationResult {
+  override validate(params: Record<string, unknown>): ValidationResult {
     return { valid: true };
   }
 
   async execute(context: ActionContext): Promise<ActionResult> {
     const includeTimestamps = context.params.includeTimestamps as boolean;
 
-    const result = await translateAudio(context.file);
+    const result = await translateAudio(context.file, { userId: context.userId });
 
     const data: Record<string, unknown> = {
       text: result.text,

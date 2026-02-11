@@ -21,7 +21,7 @@ export interface UpdateUserData {
 
 export interface UserWithoutPassword {
   id: string;
-  organizationId: string;
+  organizationId: string | null;
   email: string;
   name: string;
   role: UserRole;

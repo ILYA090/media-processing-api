@@ -5,6 +5,7 @@ import { queueLogger } from '../../utils/logger.js';
 import type { JobData, JobResult } from '../../types/index.js';
 
 // Redis connection
+// @ts-expect-error — ioredis CJS/ESM interop
 export const redis = new Redis(config.redis.url, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
@@ -14,7 +15,7 @@ redis.on('connect', () => {
   queueLogger.info('Redis connected');
 });
 
-redis.on('error', (error) => {
+redis.on('error', (error: Error) => {
   queueLogger.error({ error }, 'Redis connection error');
 });
 

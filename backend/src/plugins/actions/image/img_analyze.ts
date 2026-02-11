@@ -58,7 +58,7 @@ export class ImgAnalyzeHandler extends BaseActionHandler {
     },
   };
 
-  validate(params: Record<string, unknown>): ValidationResult {
+  override validate(params: Record<string, unknown>): ValidationResult {
     const errors: string[] = [];
 
     if (params.provider) {

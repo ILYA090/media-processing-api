@@ -69,7 +69,7 @@ export class ImgResizeHandler extends BaseActionHandler {
     },
   };
 
-  validate(params: Record<string, unknown>): ValidationResult {
+  override validate(params: Record<string, unknown>): ValidationResult {
     const errors: string[] = [];
     const mode = params.mode || 'percentage';
 

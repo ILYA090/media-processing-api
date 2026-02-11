@@ -6,6 +6,7 @@ const API_BASE_URL = '/api/v1';
 
 class ApiClient {
   private client: AxiosInstance;
+  private refreshPromise: Promise<{ accessToken: string; refreshToken: string }> | null = null;
 
   constructor() {
     this.client = axios.create({
@@ -44,7 +45,12 @@ class ApiClient {
           const refreshToken = useAuthStore.getState().refreshToken;
           if (refreshToken) {
             try {
-              const response = await this.refreshAccessToken(refreshToken);
+              // Prevent multiple concurrent refresh attempts
+              if (!this.refreshPromise) {
+                this.refreshPromise = this.refreshAccessToken(refreshToken);
+              }
+              const response = await this.refreshPromise;
+              this.refreshPromise = null;
               useAuthStore.getState().setTokens(response.accessToken, response.refreshToken);
               // Retry original request
               if (error.config) {
@@ -52,6 +58,7 @@ class ApiClient {
                 return this.client.request(error.config);
               }
             } catch {
+              this.refreshPromise = null;
               useAuthStore.getState().logout();
             }
           }

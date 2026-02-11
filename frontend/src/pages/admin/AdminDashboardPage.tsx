@@ -16,7 +16,7 @@ export function AdminDashboardPage() {
         const data = res.data ?? res;
         setOrgs(Array.isArray(data) ? data : []);
       })
-      .catch(() => {})
+      .catch((err) => console.error('Failed to load organizations:', err))
       .finally(() => setLoading(false));
   }, []);
 

@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
-  Image,
-  Music,
   RefreshCw,
   Download,
   XCircle,
@@ -25,25 +23,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { api } from '@/services/api';
 import { formatDateTime } from '@/utils/helpers';
+import { ACTION_LABELS } from '@/utils/constants';
 import { toast } from 'sonner';
 import type { ProcessingJob } from '@/types';
-
-const ACTION_LABELS: Record<string, string> = {
-  img_ocr: 'Extract Text (OCR)',
-  img_describe: 'Describe Image',
-  img_analyze: 'Analyze Image',
-  img_resize: 'Resize Image',
-  img_crop: 'Crop Image',
-  img_format_convert: 'Convert Format',
-  img_metadata: 'Extract Metadata',
-  aud_transcribe: 'Transcribe Audio',
-  aud_translate: 'Translate Audio',
-  aud_analyze: 'Analyze Audio',
-  aud_trim: 'Trim Audio',
-  aud_volume: 'Adjust Volume',
-  aud_format_convert: 'Convert Audio Format',
-  aud_generate_waveform: 'Generate Waveform',
-};
 
 function getResultPreview(job: ProcessingJob): string | null {
   if (job.status !== 'completed' || !job.resultData) return null;

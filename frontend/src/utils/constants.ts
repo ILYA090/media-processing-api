@@ -1,0 +1,33 @@
+export const ACTION_LABELS: Record<string, string> = {
+  img_ocr: 'Extract Text (OCR)',
+  img_describe: 'Describe Image',
+  img_analyze: 'Analyze Image',
+  img_resize: 'Resize Image',
+  img_crop: 'Crop Image',
+  img_format_convert: 'Convert Format',
+  img_metadata: 'Extract Metadata',
+  aud_transcribe: 'Transcribe Audio',
+  aud_translate: 'Translate Audio',
+  aud_analyze: 'Analyze Audio',
+  aud_trim: 'Trim Audio',
+  aud_volume: 'Adjust Volume',
+  aud_format_convert: 'Convert Audio Format',
+  aud_generate_waveform: 'Generate Waveform',
+};
+
+export const ACTION_LABELS_SHORT: Record<string, string> = {
+  img_ocr: 'Extract Text',
+  img_describe: 'Describe',
+  img_analyze: 'Analyze',
+  img_resize: 'Resize',
+  img_crop: 'Crop',
+  img_format_convert: 'Convert Format',
+  img_metadata: 'Metadata',
+  aud_transcribe: 'Transcribe',
+  aud_translate: 'Translate',
+  aud_analyze: 'Analyze Audio',
+  aud_trim: 'Trim',
+  aud_volume: 'Volume',
+  aud_format_convert: 'Convert Audio',
+  aud_generate_waveform: 'Waveform',
+};

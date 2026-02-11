@@ -51,7 +51,7 @@ export class AudGenerateWaveformHandler extends BaseActionHandler {
     },
   };
 
-  validate(params: Record<string, unknown>): ValidationResult {
+  override validate(params: Record<string, unknown>): ValidationResult {
     const errors: string[] = [];
 
     if (params.width !== undefined) {

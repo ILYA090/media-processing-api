@@ -23,7 +23,7 @@ import { AuthImage } from '@/components/ui/AuthImage';
 import { api } from '@/services/api';
 import { formatBytes } from '@/utils/helpers';
 import { toast } from 'sonner';
-import type { MediaFile, Action, ProcessingJob } from '@/types';
+import type { Action, ProcessingJob } from '@/types';
 
 const categoryIcons = {
   transcribe: FileText,
@@ -46,8 +46,8 @@ function ResultDisplay({ data, actionId }: { data: Record<string, unknown>; acti
         <div className="bg-gray-50 rounded-lg p-4 border">
           <p className="text-gray-900 whitespace-pre-wrap">{String(data.text)}</p>
         </div>
-        {data.language && data.language !== 'auto' && (
-          <p className="text-xs text-gray-400 mt-2">Language: {String(data.language)}</p>
+        {typeof data.language === 'string' && data.language !== 'auto' && (
+          <p className="text-xs text-gray-400 mt-2">Language: {data.language}</p>
         )}
       </div>
     );
@@ -61,8 +61,8 @@ function ResultDisplay({ data, actionId }: { data: Record<string, unknown>; acti
         <div className="bg-gray-50 rounded-lg p-4 border">
           <p className="text-gray-900 whitespace-pre-wrap">{String(data.description)}</p>
         </div>
-        {data.provider && (
-          <p className="text-xs text-gray-400 mt-2">Provider: {String(data.provider)}</p>
+        {typeof data.provider === 'string' && (
+          <p className="text-xs text-gray-400 mt-2">Provider: {data.provider}</p>
         )}
       </div>
     );
@@ -77,19 +77,23 @@ function ResultDisplay({ data, actionId }: { data: Record<string, unknown>; acti
         <div className="bg-gray-50 rounded-lg p-4 border">
           <p className="text-gray-900 whitespace-pre-wrap">{String(analysis.fullAnalysis || '')}</p>
         </div>
-        {data.metadata && (
-          <div className="mt-3">
-            <h4 className="text-sm font-medium text-gray-500 mb-1">Image Info</h4>
-            <div className="flex gap-4 text-sm text-gray-600">
-              {(data.metadata as any).width && (
-                <span>{(data.metadata as any).width} x {(data.metadata as any).height} px</span>
-              )}
-              {(data.metadata as any).format && (
-                <span>Format: {String((data.metadata as any).format)}</span>
-              )}
+        {(() => {
+          const meta = data.metadata as Record<string, unknown> | undefined;
+          if (!meta || typeof meta !== 'object') return null;
+          return (
+            <div className="mt-3">
+              <h4 className="text-sm font-medium text-gray-500 mb-1">Image Info</h4>
+              <div className="flex gap-4 text-sm text-gray-600">
+                {typeof meta.width === 'number' && (
+                  <span>{meta.width} x {String(meta.height)} px</span>
+                )}
+                {typeof meta.format === 'string' && (
+                  <span>Format: {meta.format}</span>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     );
   }
@@ -104,8 +108,8 @@ function ResultDisplay({ data, actionId }: { data: Record<string, unknown>; acti
         <div className="bg-gray-50 rounded-lg p-4 border">
           <p className="text-gray-900 whitespace-pre-wrap">{String(data.text)}</p>
         </div>
-        {data.language && (
-          <p className="text-xs text-gray-400 mt-2">Language: {String(data.language)}</p>
+        {typeof data.language === 'string' && (
+          <p className="text-xs text-gray-400 mt-2">Language: {data.language}</p>
         )}
       </div>
     );

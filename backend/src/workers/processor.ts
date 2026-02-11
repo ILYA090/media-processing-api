@@ -31,6 +31,9 @@ export async function processJob(job: Job<JobData, JobResult>): Promise<JobResul
       startedAt: new Date(),
     });
 
+    // Get action handler first (fail fast before downloading)
+    const handler = actionRegistry.get(actionId);
+
     // Get media file info from database
     const mediaFile = await prisma.mediaFile.findUnique({
       where: { id: mediaId },
@@ -42,9 +45,6 @@ export async function processJob(job: Job<JobData, JobResult>): Promise<JobResul
 
     // Download file from storage
     const { buffer: fileBuffer } = await downloadFile(mediaFile.storagePath);
-
-    // Get action handler
-    const handler = actionRegistry.get(actionId);
 
     // Prepare action context
     const fileInfo: MediaFileInfo = {
@@ -127,7 +127,7 @@ export async function processJob(job: Job<JobData, JobResult>): Promise<JobResul
           fileSizeBytes: BigInt(result.file.length),
           storagePath,
           thumbnailPath,
-          metadata: result.data || {},
+          metadata: (result.data || {}) as object,
           checksumMd5: checksums.md5,
           checksumSha256: checksums.sha256,
           status: 'READY',

@@ -19,24 +19,8 @@ import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { api } from '@/services/api';
 import { formatBytes } from '@/utils/helpers';
+import { ACTION_LABELS_SHORT } from '@/utils/constants';
 import { toast } from 'sonner';
-
-const ACTION_LABELS: Record<string, string> = {
-  img_ocr: 'Extract Text',
-  img_describe: 'Describe',
-  img_analyze: 'Analyze',
-  img_resize: 'Resize',
-  img_crop: 'Crop',
-  img_format_convert: 'Convert Format',
-  img_metadata: 'Metadata',
-  aud_transcribe: 'Transcribe',
-  aud_translate: 'Translate',
-  aud_analyze: 'Analyze Audio',
-  aud_trim: 'Trim',
-  aud_volume: 'Volume',
-  aud_format_convert: 'Convert Audio',
-  aud_generate_waveform: 'Waveform',
-};
 
 export function UsagePage() {
   const [period, setPeriod] = useState('7d');
@@ -82,7 +66,7 @@ export function UsagePage() {
   const actionData = detailed?.byAction
     ? Object.entries(detailed.byAction)
         .map(([name, count]) => ({
-          name: ACTION_LABELS[name] || name,
+          name: ACTION_LABELS_SHORT[name] || name,
           count: count as number,
         }))
         .sort((a, b) => (b.count as number) - (a.count as number))

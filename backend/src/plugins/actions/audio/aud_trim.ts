@@ -42,7 +42,7 @@ export class AudTrimHandler extends BaseActionHandler {
     },
   };
 
-  validate(params: Record<string, unknown>): ValidationResult {
+  override validate(params: Record<string, unknown>): ValidationResult {
     const errors: string[] = [];
 
     const requiredResult = this.validateRequiredParams(params, ['startTime']);

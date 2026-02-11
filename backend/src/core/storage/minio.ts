@@ -218,7 +218,14 @@ export function generateStoragePath(
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
-  return `${organizationId}/${mediaType}/${year}/${month}/${day}/${filename}`;
+  // Sanitize filename to prevent path traversal
+  const sanitized = filename
+    .replace(/\.\./g, '')
+    .replace(/[/\\]/g, '_')
+    .replace(/^\.+/, '');
+  const safeName = sanitized || 'unnamed';
+
+  return `${organizationId}/${mediaType}/${year}/${month}/${day}/${safeName}`;
 }
 
 export function generateThumbnailPath(storagePath: string): string {

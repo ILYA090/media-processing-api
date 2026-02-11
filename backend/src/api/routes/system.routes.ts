@@ -5,6 +5,10 @@ import { checkStorageConnection } from '../../core/storage/minio.js';
 import { actionRegistry } from '../../plugins/actions/registry.js';
 import { config } from '../../config/index.js';
 import { isOpenAIConfigured, isAnthropicConfigured } from '../../plugins/ai-providers/index.js';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const pkg = require('../../../package.json') as { version: string };
 
 export async function systemRoutes(fastify: FastifyInstance) {
   // Health check
@@ -46,7 +50,7 @@ export async function systemRoutes(fastify: FastifyInstance) {
       return reply.status(allHealthy ? 200 : 503).send({
         status: allHealthy ? 'healthy' : 'degraded',
         timestamp: new Date().toISOString(),
-        version: '1.0.0',
+        version: pkg.version,
         services: {
           database: dbOk ? 'healthy' : 'unhealthy',
           redis: redisOk ? 'healthy' : 'unhealthy',

@@ -38,6 +38,7 @@ export function createUsageTracker(actionType: UsageActionType) {
 // Middleware to track usage after response
 export function usageTrackerPlugin(actionType: UsageActionType) {
   return async function (request: FastifyRequest, reply: FastifyReply) {
+    // @ts-expect-error — addHook exists at runtime on Fastify reply
     reply.addHook('onSend', createUsageTracker(actionType));
   };
 }

@@ -7,10 +7,12 @@ import { Zap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
+import { AxiosError } from 'axios';
 import { api } from '@/services/api';
 import { useAuthStore } from '@/stores/authStore';
 import { queryClient } from '@/main';
 import { toast } from 'sonner';
+import type { ApiError } from '@/types';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -49,29 +51,9 @@ export function LoginPage() {
       }
       toast.success('Welcome back!');
       navigate(result.user.isSuperAdmin ? '/admin' : '/');
-    } catch (error: any) {
-      toast.error(error.response?.data?.error?.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    try {
-      queryClient.clear();
-      const result = await api.login('admin@democorp.com', 'Demo@2026!');
-      setTokens(result.accessToken, result.refreshToken);
-      setUser(result.user);
-      setOrganization(result.organization);
-      try {
-        const me = await api.getMe();
-        if (me.aiSettings) setAiSettings(me.aiSettings);
-      } catch {}
-      toast.success('Logged in as Demo Admin');
-      navigate('/');
-    } catch (error: any) {
-      toast.error(error.response?.data?.error?.message || 'Demo login failed. Is the backend running?');
+    } catch (error: unknown) {
+      const axiosErr = error as AxiosError<ApiError>;
+      toast.error(axiosErr.response?.data?.error?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -121,23 +103,6 @@ export function LoginPage() {
               Sign in
             </Button>
 
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">or</span>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleDemoLogin}
-            >
-              Demo Login
-            </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-500">

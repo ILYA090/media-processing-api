@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, Building2, Bell, Shield, Trash2, Brain, Eye, EyeOff, Check, X } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Save, Building2, Bell, Shield, Trash2, Brain, Eye, EyeOff, X } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card';

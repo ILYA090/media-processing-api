@@ -51,7 +51,9 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // CORS
   await app.register(cors, {
-    origin: config.isDev ? true : config.server.baseUrl,
+    origin: config.isDev
+      ? ['http://localhost:5173', 'http://localhost:3001']
+      : config.server.baseUrl,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Request-ID'],
@@ -155,8 +157,8 @@ export async function buildApp(): Promise<FastifyInstance> {
         httpMethod: request.method,
         responseStatus: reply.statusCode,
       });
-    } catch {
-      // Don't fail requests if usage tracking fails
+    } catch (err) {
+      logger.warn({ err }, 'Usage tracking failed');
     }
   });
 

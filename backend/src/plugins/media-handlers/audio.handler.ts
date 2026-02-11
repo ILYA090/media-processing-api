@@ -49,7 +49,7 @@ async function extractMetadata(buffer: Buffer): Promise<AudioMetadata> {
 
 export const audioHandler: MediaHandler = {
   mediaType: 'audio' as MediaType,
-  supportedMimeTypes: config.media.audio.supportedMimeTypes,
+  supportedMimeTypes: [...config.media.audio.supportedMimeTypes],
   validateFile,
   extractMetadata,
 };

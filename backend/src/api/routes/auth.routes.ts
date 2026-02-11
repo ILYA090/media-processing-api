@@ -722,7 +722,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       await prisma.user.update({
         where: { id: userId },
-        data: { settings: currentSettings },
+        data: { settings: currentSettings as object },
       });
 
       // Invalidate cached AI clients for this user

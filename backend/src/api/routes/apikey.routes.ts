@@ -306,7 +306,7 @@ export async function apiKeyRoutes(fastify: FastifyInstance) {
 
       const apiKey = await apiKeyService.updateApiKey(organizationId, id, {
         ...result.data,
-        expiresAt: result.data.expiresAt ? new Date(result.data.expiresAt) : result.data.expiresAt,
+        expiresAt: result.data.expiresAt ? new Date(result.data.expiresAt) : undefined,
       });
 
       return reply.send({

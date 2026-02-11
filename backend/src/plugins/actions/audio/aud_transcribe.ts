@@ -55,7 +55,7 @@ export class AudTranscribeHandler extends BaseActionHandler {
     },
   };
 
-  validate(params: Record<string, unknown>): ValidationResult {
+  override validate(params: Record<string, unknown>): ValidationResult {
     return { valid: true };
   }
 
@@ -63,7 +63,7 @@ export class AudTranscribeHandler extends BaseActionHandler {
     const language = context.params.language as string | undefined;
     const includeTimestamps = context.params.includeTimestamps as boolean;
 
-    const result = await transcribeAudio(context.file, { language });
+    const result = await transcribeAudio(context.file, { language, userId: context.userId });
 
     const data: Record<string, unknown> = {
       text: result.text,

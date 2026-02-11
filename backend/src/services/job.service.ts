@@ -87,7 +87,7 @@ export async function createJob(data: CreateJobData): Promise<ProcessingJob> {
       inputMediaId: mediaId,
       actionId,
       actionCategory: CATEGORY_MAP[handler.category],
-      parameters: parameters || {},
+      parameters: (parameters || {}) as object,
       status: 'PENDING',
       priority: priority || 50,
     },

@@ -85,12 +85,13 @@ export function UploadPage() {
 
     setUrlLoading(true);
     try {
-      const urlResult = await api.uploadMediaFromUrl(urlInput);
+      await api.uploadMediaFromUrl(urlInput);
       toast.success('File uploaded from URL successfully');
       setUrlInput('');
       navigate('/media');
-    } catch (error: any) {
-      toast.error(error.response?.data?.error?.message || 'Failed to upload from URL');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: { message?: string } } } };
+      toast.error(err.response?.data?.error?.message || 'Failed to upload from URL');
     } finally {
       setUrlLoading(false);
     }

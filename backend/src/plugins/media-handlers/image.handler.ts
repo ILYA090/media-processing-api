@@ -76,7 +76,7 @@ async function generateThumbnail(buffer: Buffer): Promise<Buffer> {
 
 export const imageHandler: MediaHandler = {
   mediaType: 'image' as MediaType,
-  supportedMimeTypes: config.media.image.supportedMimeTypes,
+  supportedMimeTypes: [...config.media.image.supportedMimeTypes],
   validateFile,
   extractMetadata,
   generateThumbnail,

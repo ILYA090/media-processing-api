@@ -50,7 +50,7 @@ export class AudAnalyzeHandler extends BaseActionHandler {
     },
   };
 
-  validate(params: Record<string, unknown>): ValidationResult {
+  override validate(params: Record<string, unknown>): ValidationResult {
     return { valid: true };
   }
 
